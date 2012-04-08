@@ -1,0 +1,14 @@
+Semantic Seriation based on Hamiltonian Path is a package that takes a sparse term-document matrix provided in libsvm format, and calculates the seriation of the term space. Several distance functions are available. 
+
+The JWI (the MIT Java Wordnet Interface) package is required to run seriation with WordNet-based distance functions.
+
+Two files are typically required
+1) Libsvm-formatted sparse term-document matrix with training instances.
+2) Libsvm-formatted sparse term-document matrix with testing instances
+
+The latter can be excluded, the seriation only relies on information from the first file. 
+
+The classes under sg.edu.nus.comp.sseriation.order perform seriation with different distance functions. Drawing histograms of subsequent distances is also possible. The classes under sg.edu.nus.comp.sseriation.sdistance are helper functions to calculate WordNet-based distances.
+
+If you use this code, please cite: 
+Wittek, P., Darányi, S., Tan, C.L.: An Ordering of Terms Based on Semantic Relatedness. Proceedings of IWCS-09, 8th International Conference on Computational Semantics, pp. 235—247. Tilburg, The Netherlands. January, 2009.
