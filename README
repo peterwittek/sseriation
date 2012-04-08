@@ -1,6 +1,6 @@
 Semantic Seriation based on Hamiltonian Path is a package that takes a sparse term-document matrix provided in libsvm format, and calculates the seriation of the term space. Several distance functions are available. 
 
-The JWI (the MIT Java Wordnet Interface) package is required to run seriation with WordNet-based distance functions.
+The JWI (the MIT Java Wordnet Interface) package is required to run seriation with WordNet-based distance functions. Make sure you adjust the WordNet directories in the source files.
 
 Two files are typically required
 1) Libsvm-formatted sparse term-document matrix with training instances.
