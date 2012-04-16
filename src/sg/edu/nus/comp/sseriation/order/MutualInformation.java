@@ -45,7 +45,7 @@ public class MutualInformation extends Distributional {
 		database = args[0];
 		String trainingFile = database + "_train.dat";
 		MutualInformation mi = new MutualInformation(trainingFile, false);
-		mi.generateOrder();
+		mi.generateOrderLeftRight();
 		mi.writeOrder();
 		mi.writeNewOrderWithClasses(trainingFile);
 		String testFile = database + "_test.dat";
@@ -53,8 +53,8 @@ public class MutualInformation extends Distributional {
 	}
 
 	@Override
-	protected double distanceFunction(int x, int y) {
-		return SparseVector.mutualInformationMetric(mx[x], mx[y], nBins, n);
+	protected double getDistance(int x, int y) {
+		return SparseVector.mutualInformationMetric(mx[x], mx[y], nBins, nDimensions);
 	}
 
 }

@@ -27,8 +27,8 @@ import sg.edu.nus.comp.sseriation.util.VectorNode;
 public abstract class Distributional extends LinearOrder {
 
 	protected VectorNode[][] mx;
-	protected int n;
-	protected boolean classes;
+	protected int nDimensions;
+	private boolean classes;
 
 	Distributional(String filename, String model) throws IOException {
 		this(filename, model, true);
@@ -41,22 +41,24 @@ public abstract class Distributional extends LinearOrder {
 
 	Distributional(String filename, String model, boolean reset, boolean classes)
 			throws IOException {
+		this(filename, model, reset, true, false);
+	}
+	Distributional(String filename, String model, boolean reset, boolean classes, boolean transpose)
+				throws IOException {
 		super(filename, model, reset);
 		// Read data and transpose
 		this.classes = classes;
-		if (classes) {
-			mx = SparseVector.readSparseMatrix(filename);
-		} else {
-			mx = SparseVector.readSparseMatrix(filename);
+		mx = SparseVector.readSparseMatrix(filename);
+		if (transpose){
+			mx = SparseVector.transpose(SparseVector.shiftColumns(mx, -1));
 		}
-		n = mx.length;
-		mx = SparseVector.transpose(SparseVector.shiftColumns(mx, -1));
-		m = mx.length;
+		nInstances = mx.length;
+		nDimensions = SparseVector.findMaxColumnIndex(mx);
 	}
 
 	@Override
 	protected int findSeed() {
-		return m / 2;
+		return nInstances / 2;
 	}
 
 	private VectorNode[][] rearrangeMatrix(VectorNode[][] mx) {

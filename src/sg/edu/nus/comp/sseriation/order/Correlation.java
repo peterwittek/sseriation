@@ -38,18 +38,18 @@ public class Correlation extends Distributional {
 		database = args[0];
 		String trainingFile = database + "_train.dat";
 		Correlation co = new Correlation(trainingFile);
-		co.generateOrder();
+		co.generateOrderLeftRight();
 		co.writeOrder();
 		co.writeNewOrderWithClasses(trainingFile);
 		String testFile = database + "_test.dat";
 		co.writeNewOrderWithClasses(testFile);
-		Utilities.writeDoubleList(co.scale(), database + "_" + co.model
+		Utilities.writeDoubleList(co.getScale(), database + "_" + co.model
 				+ "_scale.dat");
 	}
 
 	@Override
-	protected double distanceFunction(int x, int y) {
-		return 1 - Math.abs(SparseVector.correlation(mx[x], mx[y], n));
+	protected double getDistance(int x, int y) {
+		return 1 - Math.abs(SparseVector.correlation(mx[x], mx[y], nDimensions));
 	}
 
 }

@@ -36,7 +36,7 @@ public class JcnConservative extends LinearOrder {
 		String database;
 		database = args[0];
 		JcnConservative oJC = new JcnConservative(database + ".txt", false);
-		oJC.generateOrder();
+		oJC.generateOrderLeftRight();
 		oJC.writeOrder();
 	}
 
@@ -49,11 +49,11 @@ public class JcnConservative extends LinearOrder {
 		System.out.println("Creating similarity object...");
 		jcdObject = new Jcn();
 		terms = Utilities.readWordList(filename);
-		m = terms.length;
+		nInstances = terms.length;
 	}
 
 	@Override
-	protected double distanceFunction(int x, int y) {
+	protected double getDistance(int x, int y) {
 		return jcdObject.d_max(terms[x], terms[y]);
 	}
 
@@ -61,9 +61,9 @@ public class JcnConservative extends LinearOrder {
 	protected int findSeed() {
 		double min = Integer.MAX_VALUE;
 		int argmin = -1;
-		for (Iterator<Integer> iter = V.iterator(); iter.hasNext();) {
+		for (Iterator<Integer> iter = remainingElements.iterator(); iter.hasNext();) {
 			int tmpi = iter.next();
-			double tmp = distanceFunction(Arrays.binarySearch(terms, "entity"),
+			double tmp = getDistance(Arrays.binarySearch(terms, "entity"),
 					tmpi);
 			if (tmp < min) {
 				argmin = tmpi;
@@ -79,12 +79,8 @@ public class JcnConservative extends LinearOrder {
 		FileWriter out = new FileWriter(new File(filename.substring(0,
 				filename.length() - 4)
 				+ "_" + model + "_order.txt"), false);
-		for (int i = leftSide.size() - 1; i >= 0; i--) {
-			out.write(terms[leftSide.elementAt(i)] + "\n");
-		}
-		out.write(terms[seed] + "\n");
-		for (int i = 0; i < rightSide.size(); i++) {
-			out.write(terms[rightSide.elementAt(i)] + "\n");
+		for (int i =0; i< order.size(); i++) {
+			out.write(terms[order.get(i)] + "\n");
 		}
 		out.close();
 	}

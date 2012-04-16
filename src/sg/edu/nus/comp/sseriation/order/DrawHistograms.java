@@ -28,7 +28,7 @@ public class DrawHistograms {
 		String database = args[0];
 		String trainingFile = database + "_train.dat";
 		LinearOrder lo = new Euclidean(trainingFile);
-		lo.setOrder(original(lo.m));
+		lo.setOrder(original(lo.nInstances));
 		double data[][] = new double[2][];
 		data[0] = lo.calculateConsecutiveDistances();
 		Utilities.writeDoubleList(data[0], database + "_train_histogram.dat");

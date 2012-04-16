@@ -23,7 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import sg.edu.nus.comp.sseriation.util.Utilities;
 
@@ -39,10 +39,8 @@ public abstract class LinearOrder {
 		}
 	}
 
-	protected int seed;
-	protected Vector<Integer> rightSide = new Vector<Integer>();
-	protected Vector<Integer> leftSide = new Vector<Integer>();
-	protected HashSet<Integer> V = new HashSet<Integer>();
+	protected HashSet<Integer> remainingElements = new HashSet<Integer>();
+	protected ArrayList<Integer> order = new ArrayList<Integer>();
 	protected String model;
 
 	public String getModel() {
@@ -50,7 +48,7 @@ public abstract class LinearOrder {
 	}
 
 	protected String filename;
-	protected int m;// The number of features
+	protected int nInstances;
 	private boolean reset;
 
 	public LinearOrder(String filename, String model) throws IOException {
@@ -62,34 +60,62 @@ public abstract class LinearOrder {
 		this.model = model;
 		this.filename = filename;
 		this.reset = reset;
+		for (int i = 0; i < nInstances; i++) {
+			remainingElements.add(i);
+		}
+		order = new ArrayList<Integer>();
 		if (reset) {
 			Utilities.resetFile(filename.substring(0, filename.length() - 4)
-					+ "_" + model + "_seed.txt");
-			Utilities.resetFile(filename.substring(0, filename.length() - 4)
-					+ "_" + model + "_left.txt");
-			Utilities.resetFile(filename.substring(0, filename.length() - 4)
-					+ "_" + model + "_right.txt");
+					+ "_" + model + "_order-tmp.txt");
+		} else {
+			int[] tmp = Utilities.readIntArray(filename.substring(0,
+					filename.length() - 4)
+					+ "_" + model + "_order-tmp.txt");
+			for (int i = 0; i < tmp.length; i++) {
+				order.add(tmp[i]);
+				remainingElements.remove(tmp[i]);
+			}
 		}
 	}
 
 	public double[] calculateConsecutiveDistances() {
 		int[] order = getNewOrder();
-		double[] result = new double[m - 1];
-		for (int i = 0; i < m - 1; i++) {
+		double[] result = new double[nInstances - 1];
+		for (int i = 0; i < nInstances - 1; i++) {
 			System.out.println(i);
-			result[i] = distanceFunction(order[i], order[i + 1]);
+			result[i] = getDistance(order[i], order[i + 1]);
 		}
 		return result;
 	}
 
-	protected abstract double distanceFunction(int x, int y);
+	public double calculateSumOfDistances() {
+		int[] order = getNewOrder();
+		double result = 0;
+		for (int i = 0; i < nInstances - 1; i++) {
+			System.out.println(i);
+			result += getDistance(order[i], order[i + 1]);
+		}
+		return result;
+	}
 
-	private minObject findMin(int x) {
+	protected abstract double getDistance(int x, int y);
+
+	/**
+	 * Finds the next candidate from the remaining set of elements that has the
+	 * minimum distance to one end of the order computed so far. Used by the
+	 * left-right heuristic.
+	 * 
+	 * @param x
+	 *            the current left or right element
+	 * @return the optimal element and its distance from x
+	 */
+	private minObject findNextCandidate(int x) {
 		double min = Integer.MAX_VALUE;
 		int argmin = -1;
-		for (Iterator<Integer> iter = V.iterator(); iter.hasNext();) {
+		for (Iterator<Integer> iter = remainingElements.iterator(); iter
+				.hasNext();) {
 			int tmpi = iter.next();
-			double tmpd = distanceFunction(x, tmpi);
+			double tmpd = getDistance(x, tmpi);
 			if (tmpd < min) {
 				argmin = tmpi;
 				min = tmpd;
@@ -99,76 +125,97 @@ public abstract class LinearOrder {
 		return result;
 	}
 
+	/**
+	 * Finds the best slot to insert an element in the order computed so far.
+	 * Used by the insert heuristic.
+	 * 
+	 * @param x
+	 *            the element to insert
+	 * @return the best slot
+	 */
+	private Integer findBestSlot(int x) {
+		// If the order has zero or one element,
+		// the solution is trivial
+		if (order.size() == 0 || order.size() == 1) {
+			return 0;
+		}
+
+		// Two separate cases have to deal with the end points
+		double d = getDistance(x, order.get(0))
+				+ getDistance(order.get(0), order.get(1));
+		double min = d;
+		int argmin = -1;
+		d = getDistance(order.get(order.size() - 2),
+				order.get(order.size() - 1))
+				+ getDistance(order.get(order.get(order.size() - 1)), x);
+		if (d < min) {
+			argmin = order.size() - 1;
+			min = d;
+		}
+
+		// The main loop
+		for (int i = 0; i < order.size() - 1; i++) {
+			d = getDistance(order.get(i), x) + getDistance(x, order.get(i + 1));
+			if (d < min) {
+				argmin = i;
+				min = d;
+			}
+		}
+		return argmin + 1;
+	}
+
 	protected abstract int findSeed();
 
-	public void generateOrder() throws IOException {
-		for (int i = 0; i < m; i++) {
-			V.add(i);
-		}
+	/**
+	 * Generates the order by the left-right heuristic
+	 */
+	public void generateOrderLeftRight() throws IOException {
 		if (reset) {
 			System.out.println("Finding seed...");
-			seed = findSeed();
-			V.remove(seed);
+			int seed = findSeed();
+			order.add(seed);
+			remainingElements.remove(seed);
 			writeOne(filename.substring(0, filename.length() - 4) + "_" + model
-					+ "_seed.txt", seed);
+					+ "_order-tmp.txt", seed);
 			System.out.println("Finding left seed...");
-			int tl = findMin(seed).argmin;
-			V.remove(tl);
-			leftSide.add(tl);
+			int tl = findNextCandidate(seed).argmin;
+			remainingElements.remove(tl);
+			order.add(0, tl);
 			writeOne(filename.substring(0, filename.length() - 4) + "_" + model
-					+ "_left.txt", tl);
+					+ "_order-tmp.txt", tl);
 			System.out.println("Finding right seed...");
-			int tr = findMin(seed).argmin;
-			V.remove(tr);
-			rightSide.add(tr);
+			int tr = findNextCandidate(seed).argmin;
+			remainingElements.remove(tr);
+			order.add(tr);
 			writeOne(filename.substring(0, filename.length() - 4) + "_" + model
-					+ "_right.txt", tr);
-		} else {
-			seed = Utilities.readIntArray(filename.substring(0,
-					filename.length() - 4)
-					+ "_" + model + "_seed.txt")[0];
-			V.remove(seed);
-			int[] tmp = Utilities.readIntArray(filename.substring(0,
-					filename.length() - 4)
-					+ "_" + model + "_left.txt");
-			for (int i = 0; i < tmp.length; i++) {
-				leftSide.add(tmp[i]);
-				V.remove(tmp[i]);
-			}
-			tmp = Utilities.readIntArray(filename.substring(0,
-					filename.length() - 4)
-					+ "_" + model + "_right.txt");
-			for (int i = 0; i < tmp.length; i++) {
-				rightSide.add(tmp[i]);
-				V.remove(tmp[i]);
-			}
+					+ "_order-tmp.txt", tr);
 		}
 		System.out.println("Generating order...");
 		int progress = 0;
-		minObject tlMinObject = findMin(leftSide.lastElement());
-		minObject trMinObject = findMin(rightSide.lastElement());
+		minObject tlMinObject = findNextCandidate(order.get(0));
+		minObject trMinObject = findNextCandidate(order.get(order.size() - 1));
 		boolean changeLeft = false;
 		boolean changeRight = false;
-		while (!V.isEmpty()) {
+		while (!remainingElements.isEmpty()) {
 			if (changeLeft) {
-				tlMinObject = findMin(leftSide.lastElement());
+				tlMinObject = findNextCandidate(order.get(0));
 				changeLeft = false;
 			}
 			if (changeRight) {
-				trMinObject = findMin(rightSide.lastElement());
+				trMinObject = findNextCandidate(order.get(order.size() - 1));
 				changeRight = false;
 			}
 			if (tlMinObject.min <= trMinObject.min && tlMinObject.argmin != -1) {
-				V.remove(tlMinObject.argmin);
-				leftSide.add(tlMinObject.argmin);
+				remainingElements.remove(tlMinObject.argmin);
+				order.add(0, tlMinObject.argmin);
 				writeOne(filename.substring(0, filename.length() - 4) + "_"
-						+ model + "_left.txt", tlMinObject.argmin);
+						+ model + "_order-tmp.txt", tlMinObject.argmin);
 				changeLeft = true;
 			} else if (trMinObject.argmin != -1) {
-				V.remove(trMinObject.argmin);
-				rightSide.add(trMinObject.argmin);
+				remainingElements.remove(trMinObject.argmin);
+				order.add(trMinObject.argmin);
 				writeOne(filename.substring(0, filename.length() - 4) + "_"
-						+ model + "_right.txt", trMinObject.argmin);
+						+ model + "_order-tmp.txt", trMinObject.argmin);
 				changeRight = true;
 			}
 			if (trMinObject.argmin == tlMinObject.argmin) {
@@ -191,20 +238,35 @@ public abstract class LinearOrder {
 		}
 	}
 
-	protected int[] getNewOrder() {
-		int[] result = new int[leftSide.size() + rightSide.size() + 1];
-		int j = 0;
-		for (int i = leftSide.size() - 1; i >= 0; i--, j++) {
-			result[j] = leftSide.elementAt(i);
+	/**
+	 * Generates the order by the insert heuristic
+	 */
+	public void generateOrderInsert() throws IOException {
+		int progress = 0;
+		for (int i=0;i<nInstances;i++) {
+			order.add(findBestSlot(i),i);
+			remainingElements.remove(i);
+			progress++;
+			if (progress % 50 == 0) {
+				System.out.println(progress);
+			}
 		}
-		result[j++] = seed;
-		for (int i = 0; i < rightSide.size(); i++, j++) {
-			result[j] = rightSide.elementAt(i);
+	}
+
+	protected int[] getNewOrder() {
+		int[] result = new int[order.size()];
+		for (int i = 0; i < order.size(); i++) {
+			result[i] = order.get(i);
 		}
 		return result;
 	}
 
-	public double[] scale() throws IOException {
+	public void insertNewElement(int x) {
+		order.add(findBestSlot(x), x);
+		nInstances = nInstances + 1;
+	}
+
+	public double[] getScale() throws IOException {
 		double[] consecDists = calculateConsecutiveDistances();
 		double[] scale = new double[consecDists.length + 1];
 		scale[0] = 0;
@@ -214,21 +276,22 @@ public abstract class LinearOrder {
 		return scale;
 	}
 
-	public void setOrder(int[] order) {
-		leftSide.removeAllElements();
-		rightSide.removeAllElements();
-		leftSide.add(order[0]);
-		seed = order[1];
-		for (int i = 2; i < order.length; i++) {
-			rightSide.add(order[i]);
+	public void setOrder(int[] orderArray) {
+		order.clear();
+		for (int i = 0; i < orderArray.length; i++) {
+			order.add(orderArray[i]);
 		}
 	}
 
-	public void snapshotV() throws IOException {
+	/**
+	 * Takes a snapshot of the remaining elements. Useful in debugging.
+	 */
+	protected void takeSnapshotOfRemainingElements() throws IOException {
 		FileWriter out = new FileWriter(new File(filename.substring(0,
 				filename.length() - 4)
 				+ "_" + model + "_Vsnapshot.txt"), false);
-		for (Iterator<Integer> iter = V.iterator(); iter.hasNext();) {
+		for (Iterator<Integer> iter = remainingElements.iterator(); iter
+				.hasNext();) {
 			out.write(iter.next() + "\n");
 		}
 		out.close();
@@ -247,7 +310,7 @@ public abstract class LinearOrder {
 	}
 
 	public void writeScale() throws IOException {
-		Utilities.writeDoubleList(scale(),
+		Utilities.writeDoubleList(getScale(),
 				filename.substring(0, filename.length() - 4) + "_" + model
 						+ "_scale.dat");
 	}

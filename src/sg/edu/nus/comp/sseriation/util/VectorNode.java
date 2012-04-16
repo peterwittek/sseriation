@@ -1,6 +1,6 @@
 /**
- * Spectral mapping of index terms
- *  Copyright (C) 2011 Peter Wittek
+ * Semantic Seriation based on Hamiltonian Path
+ *  Copyright (C) 2012 Peter Wittek
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 package sg.edu.nus.comp.sseriation.util;
 
 /**

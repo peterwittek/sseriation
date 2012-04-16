@@ -1,6 +1,6 @@
 /**
- * Spectral mapping of index terms
- *  Copyright (C) 2011 Peter Wittek
+ * Semantic Seriation based on Hamiltonian Path
+ *  Copyright (C) 2012 Peter Wittek
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 package sg.edu.nus.comp.sseriation.util;
 
 import java.io.BufferedReader;
@@ -211,6 +210,16 @@ public class SparseVector {
 						* sumSquare(y) - sumy * sumy));
 	}
 
+	private static int countNonZeroEntries(VectorNode[] v) {
+		if (v == null)
+			return 0;
+		int result = 0;
+		for (int i = 0; i < v.length; i++) {
+			result++;
+		}
+		return result;
+	}
+
 	/**
 	 * Dot product of two sparse vectors.
 	 * 
@@ -242,6 +251,17 @@ public class SparseVector {
 		return sum;
 	}
 
+	private static double entropy(VectorNode[] x, int nBins, int n) {
+		if (x == null) {
+			return 0;
+		}
+		double result = 0;
+		for (int i = 0; i < nBins; i++) {
+			result += logOccurances(x, i, n);
+		}
+		return -result;
+	}
+
 	/**
 	 * Euclidean distance of two sparse vectors.
 	 * 
@@ -258,6 +278,139 @@ public class SparseVector {
 		VectorNode[] z = multiplyByScalar(y, -1);
 		z = addVectors(x, z);
 		return Math.sqrt(dotProduct(z, z));
+	}
+
+	/**
+	 * Finds the maximum column index (often the dimension of the space).
+	 * 
+	 * @param mx
+	 *            the sparse matrix
+	 * @return the maximum column index
+	 */
+	public static int findMaxColumnIndex(VectorNode[][] mx) {
+		int result = 0;
+		for (int i = 0; i < mx.length; i++) {
+			if (mx[i] != null) {
+				for (int j = 0; j < mx[i].length; j++) {
+					if (mx[i][j].index > result)
+						result = mx[i][j].index;
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Finds the minimum column index. This is important to determine whether
+	 * the matrix elements are zero-indexed.
+	 * 
+	 * @param mx
+	 *            the sparse matrix
+	 * @return the minimum index
+	 */
+	public static int findMinColumnIndex(VectorNode[][] mx) {
+		int result = Integer.MAX_VALUE;
+		for (int i = 0; i < mx.length; i++) {
+			if (mx[i] != null) {
+				if (mx[i][0].index < result)
+					result = mx[i][0].index;
+			}
+		}
+		return result;
+	}
+
+	private static double jointEntropy(VectorNode[] x, VectorNode[] y,
+			int nBins, int n) {
+		double result = 0;
+		for (int i = 0; i < nBins; i++) {
+			for (int j = 0; j < nBins; j++) {
+				result += logMutualOccurances(x, y, i, j, n);
+			}
+		}
+		return -result;
+	}
+
+	private static double logMutualOccurances(VectorNode[] x, VectorNode[] y,
+			double X, double Y, int n) {
+		if (x == null && y == null) {
+			return 0;
+		}
+		if (y == null) {
+			y = x;
+			x = null;
+			double tmp = X;
+			X = Y;
+			Y = tmp;
+		}
+		double result = 0;
+		int i = 0;
+		int j = 0;
+		if (X == 0 && Y == 0) {
+			result = n - countNonZeroEntries(addVectors(x, y));
+		} else if (X == 0) {
+			int lastIndex = 0;
+			if (x != null) {
+				for (i = 0; i < x.length; i++) {
+					while (j < y.length && y[j].index < x[i].index) {
+						if (y[j].index > lastIndex && y[j].value == Y) {
+							result++;
+						}
+						j++;
+					}
+					lastIndex = x[i].index;
+				}
+			}
+			while (j < y.length) {
+				if (y[j].index > lastIndex && y[j].value == Y) {
+					result++;
+				}
+				j++;
+			}
+		} else if (X != 0 && x != null) {
+			while (i < x.length && j < y.length) {
+				if (x[i].index == y[j].index) {
+					if (x[i].value == X && y[j].value == Y) {
+						result++;
+					}
+					i++;
+					j++;
+				} else {
+					if (x[i].index > y[j].index) {
+						++j;
+					} else {
+						++i;
+					}
+				}
+			}
+		}
+		result = result / n;
+		if (result == 0) {
+			return 0;
+		} else {
+			return result * Math.log(result);
+		}
+	}
+
+	private static double logOccurances(VectorNode[] x, double X, int n) {
+		if (x == null) {
+			return 0;
+		}
+		double result = 0;
+		if (X == 0) {
+			result = (double) n - (double) x.length;
+		} else {
+			for (int i = 0; i < x.length; i++) {
+				if (x[i].value == X) {
+					result++;
+				}
+			}
+		}
+		result = result / n;
+		if (result == 0) {
+			return 0;
+		} else {
+			return result * Math.log(result);
+		}
 	}
 
 	/**
@@ -367,121 +520,6 @@ public class SparseVector {
 		return result;
 	}
 
-	private static int countNonZeroEntries(VectorNode[] v) {
-		if (v == null)
-			return 0;
-		int result = 0;
-		for (int i = 0; i < v.length; i++) {
-			result++;
-		}
-		return result;
-	}
-
-	private static double entropy(VectorNode[] x, int nBins, int n) {
-		if (x == null) {
-			return 0;
-		}
-		double result = 0;
-		for (int i = 0; i < nBins; i++) {
-			result += logOccurances(x, i, n);
-		}
-		return -result;
-	}
-
-	private static double jointEntropy(VectorNode[] x, VectorNode[] y,
-			int nBins, int n) {
-		double result = 0;
-		for (int i = 0; i < nBins; i++) {
-			for (int j = 0; j < nBins; j++) {
-				result += logMutualOccurances(x, y, i, j, n);
-			}
-		}
-		return -result;
-	}
-
-	private static double logMutualOccurances(VectorNode[] x, VectorNode[] y,
-			double X, double Y, int n) {
-		if (x == null && y == null) {
-			return 0;
-		}
-		if (y == null) {
-			y = x;
-			x = null;
-			double tmp = X;
-			X = Y;
-			Y = tmp;
-		}
-		double result = 0;
-		int i = 0;
-		int j = 0;
-		if (X == 0 && Y == 0) {
-			result = n - countNonZeroEntries(addVectors(x, y));
-		} else if (X == 0) {
-			int lastIndex = 0;
-			if (x != null) {
-				for (i = 0; i < x.length; i++) {
-					while (j < y.length && y[j].index < x[i].index) {
-						if (y[j].index > lastIndex && y[j].value == Y) {
-							result++;
-						}
-						j++;
-					}
-					lastIndex = x[i].index;
-				}
-			}
-			while (j < y.length) {
-				if (y[j].index > lastIndex && y[j].value == Y) {
-					result++;
-				}
-				j++;
-			}
-		} else if (X != 0 && x != null) {
-			while (i < x.length && j < y.length) {
-				if (x[i].index == y[j].index) {
-					if (x[i].value == X && y[j].value == Y) {
-						result++;
-					}
-					i++;
-					j++;
-				} else {
-					if (x[i].index > y[j].index) {
-						++j;
-					} else {
-						++i;
-					}
-				}
-			}
-		}
-		result = result / n;
-		if (result == 0) {
-			return 0;
-		} else {
-			return result * Math.log(result);
-		}
-	}
-
-	private static double logOccurances(VectorNode[] x, double X, int n) {
-		if (x == null) {
-			return 0;
-		}
-		double result = 0;
-		if (X == 0) {
-			result = (double) n - (double) x.length;
-		} else {
-			for (int i = 0; i < x.length; i++) {
-				if (x[i].value == X) {
-					result++;
-				}
-			}
-		}
-		result = result / n;
-		if (result == 0) {
-			return 0;
-		} else {
-			return result * Math.log(result);
-		}
-	}
-
 	/**
 	 * Mutual information of two sparse vectors.
 	 * 
@@ -501,6 +539,48 @@ public class SparseVector {
 
 		return 2 * jointEntropy(x, y, nBins, n) - entropy(x, nBins, n)
 				- entropy(y, nBins, n);
+	}
+
+	private static VectorNode[] parseSparseVectorString(String s) {
+		StringTokenizer st = new StringTokenizer(s, "[ :]");
+		int nTokens = st.countTokens();
+		if (nTokens % 2 != 0) {
+			st.nextToken();
+			nTokens--;
+		}
+		VectorNode[] result = new VectorNode[nTokens / 2];
+		int n = 0;
+		while (st.hasMoreTokens()) {
+			result[n] = new VectorNode();
+			result[n].index = Integer.valueOf(st.nextToken());
+			result[n].value = Double.valueOf(st.nextToken());
+			n++;
+		}
+		return result;
+	}
+
+	/**
+	 * Reads the class list from a sparse matrix file
+	 * 
+	 * @param filename
+	 *            the file containing the sparse matrix
+	 * @return the list of classes
+	 */
+
+	public static String[] readClasses(String filename) throws IOException {
+		String[] result = new String[Utilities.countRowsInFile(filename)];
+		Scanner scn = new Scanner(new BufferedReader(new FileReader(new File(
+				filename)))).useDelimiter("[\n\r]");
+		int m = 0;
+		while (scn.hasNext()) {
+			String tmp = scn.next();
+			if (tmp.length() > 0) {
+				StringTokenizer st = new StringTokenizer(tmp, " ");
+				result[m++] = st.nextToken();
+			}
+		}
+		scn.close();
+		return result;
 	}
 
 	/**
@@ -529,87 +609,6 @@ public class SparseVector {
 			resultArray[i] = result.get(i);
 		}
 		return resultArray;
-	}
-
-	private static VectorNode[] parseSparseVectorString(String s) {
-		StringTokenizer st = new StringTokenizer(s, "[ :]");
-		int nTokens = st.countTokens();
-		if (nTokens % 2 != 0) {
-			st.nextToken();
-			nTokens--;
-		}
-		VectorNode[] result = new VectorNode[nTokens / 2];
-		int n = 0;
-		while (st.hasMoreTokens()) {
-			result[n] = new VectorNode();
-			result[n].index = Integer.valueOf(st.nextToken());
-			result[n].value = Double.valueOf(st.nextToken());
-			n++;
-		}
-		return result;
-	}
-
-	/**
-	 * Finds the maximum column index (often the dimension of the space).
-	 * 
-	 * @param mx
-	 *            the sparse matrix
-	 * @return the maximum column index
-	 */
-	public static int findMaxColumnIndex(VectorNode[][] mx) {
-		int result = 0;
-		for (int i = 0; i < mx.length; i++) {
-			if (mx[i] != null) {
-				for (int j = 0; j < mx[i].length; j++) {
-					if (mx[i][j].index > result)
-						result = mx[i][j].index;
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Finds the minimum column index. This is important to determine whether
-	 * the matrix elements are zero-indexed.
-	 * 
-	 * @param mx
-	 *            the sparse matrix
-	 * @return the minimum index
-	 */
-	public static int findMinColumnIndex(VectorNode[][] mx) {
-		int result = Integer.MAX_VALUE;
-		for (int i = 0; i < mx.length; i++) {
-			if (mx[i] != null) {
-				if (mx[i][0].index < result)
-					result = mx[i][0].index;
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Reads the class list from a sparse matrix file
-	 * 
-	 * @param filename
-	 *            the file containing the sparse matrix
-	 * @return the list of classes
-	 */
-
-	public static String[] readClasses(String filename) throws IOException {
-		String[] result = new String[Utilities.countRowsInFile(filename)];
-		Scanner scn = new Scanner(new BufferedReader(new FileReader(new File(
-				filename)))).useDelimiter("[\n\r]");
-		int m = 0;
-		while (scn.hasNext()) {
-			String tmp = scn.next();
-			if (tmp.length() > 0) {
-				StringTokenizer st = new StringTokenizer(tmp, " ");
-				result[m++] = st.nextToken();
-			}
-		}
-		scn.close();
-		return result;
 	}
 
 	/**
@@ -676,6 +675,16 @@ public class SparseVector {
 		return result;
 	}
 
+	private static double sum(VectorNode[] v) {
+		if (v == null)
+			return 0;
+		double result = 0;
+		for (int i = 0; i < v.length; i++) {
+			result += v[i].value;
+		}
+		return result;
+	}
+
 	private static double sumAbsolute(VectorNode[] v) {
 		if (v == null)
 			return 0;
@@ -692,16 +701,6 @@ public class SparseVector {
 		double result = 0;
 		for (int i = 0; i < v.length; i++) {
 			result += v[i].value * v[i].value;
-		}
-		return result;
-	}
-
-	private static double sum(VectorNode[] v) {
-		if (v == null)
-			return 0;
-		double result = 0;
-		for (int i = 0; i < v.length; i++) {
-			result += v[i].value;
 		}
 		return result;
 	}

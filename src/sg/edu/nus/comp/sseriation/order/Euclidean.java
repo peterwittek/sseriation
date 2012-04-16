@@ -37,7 +37,7 @@ public class Euclidean extends Distributional {
 		database = args[0];
 		String trainingFile = database + "_train.dat";
 		Euclidean eu = new Euclidean(trainingFile);
-		eu.generateOrder();
+		eu.generateOrderLeftRight();
 		eu.writeOrder();
 		eu.writeNewOrderWithClasses(trainingFile);
 		String testFile = database + "_test.dat";
@@ -45,7 +45,7 @@ public class Euclidean extends Distributional {
 	}
 
 	@Override
-	protected double distanceFunction(int x, int y) {
+	protected double getDistance(int x, int y) {
 		return SparseVector.euclidean(mx[x], mx[y]);
 	}
 

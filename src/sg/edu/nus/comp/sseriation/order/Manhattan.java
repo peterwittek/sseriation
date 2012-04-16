@@ -37,7 +37,7 @@ public class Manhattan extends Distributional {
 		database = args[0];
 		String trainingFile = database + "_train.dat";
 		Distributional dor = new Manhattan(trainingFile);
-		dor.generateOrder();
+		dor.generateOrderLeftRight();
 		dor.writeOrder();
 		dor.writeNewOrderWithClasses(trainingFile);
 		String testFile = database + "_test.dat";
@@ -45,7 +45,7 @@ public class Manhattan extends Distributional {
 	}
 
 	@Override
-	protected double distanceFunction(int x, int y) {
+	protected double getDistance(int x, int y) {
 		return SparseVector.manhattan(mx[x], mx[y]);
 	}
 
