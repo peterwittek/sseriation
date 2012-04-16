@@ -24,26 +24,20 @@ import sg.edu.nus.comp.sseriation.util.SparseVector;
 
 public class Euclidean extends Distributional {
 
+	private static final String MODEL_NAME="eucl";
+	
 	public Euclidean(String filename) throws IOException {
-		super(filename, "eucl");
+		super(filename, MODEL_NAME);
 	}
 
-	public Euclidean(String filename, boolean classes) throws IOException {
-		super(filename, "eucl", true, classes);
+	public Euclidean(String filename, boolean isClasses) throws IOException {
+		super(filename, MODEL_NAME, true, isClasses);
 	}
 
-	public static void main(String[] args) throws IOException {
-		String database;
-		database = args[0];
-		String trainingFile = database + "_train.dat";
-		Euclidean eu = new Euclidean(trainingFile);
-		eu.generateOrderLeftRight();
-		eu.writeOrder();
-		eu.writeNewOrderWithClasses(trainingFile);
-		String testFile = database + "_test.dat";
-		eu.writeNewOrderWithClasses(testFile);
+	public Euclidean(String filename, boolean isClasses, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, true, isClasses, isTransposed);
 	}
-
+	
 	@Override
 	protected double getDistance(int x, int y) {
 		return SparseVector.euclidean(mx[x], mx[y]);

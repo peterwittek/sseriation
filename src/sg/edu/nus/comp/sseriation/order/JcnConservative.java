@@ -32,14 +32,6 @@ public class JcnConservative extends LinearOrder {
 	private String[] terms;
 	private Jcn jcdObject;
 
-	public static void main(String[] args) throws IOException {
-		String database;
-		database = args[0];
-		JcnConservative oJC = new JcnConservative(database + ".txt", false);
-		oJC.generateOrderLeftRight();
-		oJC.writeOrder();
-	}
-
 	JcnConservative(String filename) throws IOException {
 		super(filename, "jcn", true);
 	}

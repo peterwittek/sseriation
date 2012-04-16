@@ -28,7 +28,9 @@ public abstract class Distributional extends LinearOrder {
 
 	protected VectorNode[][] mx;
 	protected int nDimensions;
-	private boolean classes;
+	protected static final String MODEL_NAME = "";
+	private boolean isClasses;
+	private boolean isTransposed;
 
 	Distributional(String filename, String model) throws IOException {
 		this(filename, model, true);
@@ -39,21 +41,24 @@ public abstract class Distributional extends LinearOrder {
 		this(filename, model, reset, true);
 	}
 
-	Distributional(String filename, String model, boolean reset, boolean classes)
-			throws IOException {
-		this(filename, model, reset, true, false);
+	Distributional(String filename, String model, boolean reset,
+			boolean isClasses) throws IOException {
+		this(filename, model, reset, isClasses, false);
 	}
-	Distributional(String filename, String model, boolean reset, boolean classes, boolean transpose)
-				throws IOException {
+
+	Distributional(String filename, String model, boolean reset,
+			boolean isClasses, boolean isTransposed) throws IOException {
 		super(filename, model, reset);
-		// Read data and transpose
-		this.classes = classes;
+		// Read data and isTransposed
+		this.isClasses = isClasses;
+		this.isTransposed = isTransposed;
 		mx = SparseVector.readSparseMatrix(filename);
-		if (transpose){
+		if (isTransposed) {
 			mx = SparseVector.transpose(SparseVector.shiftColumns(mx, -1));
 		}
 		nInstances = mx.length;
 		nDimensions = SparseVector.findMaxColumnIndex(mx);
+		initialize();
 	}
 
 	@Override
@@ -71,7 +76,7 @@ public abstract class Distributional extends LinearOrder {
 	}
 
 	public void writeNewOrder(String filename) throws IOException {
-		if (classes) {
+		if (isClasses) {
 			writeNewOrder(this.mx, SparseVector.readClasses(this.filename),
 					filename);
 		} else {
@@ -81,42 +86,41 @@ public abstract class Distributional extends LinearOrder {
 
 	private void writeNewOrder(VectorNode[][] mx, String[] classes,
 			String filename) {
-		// Transpose data and write
-		try {
-			if (this.classes) {
-				Utilities.writeTable(Utilities.insertColumn(SparseVector
-						.shiftColumns(SparseVector
-								.transpose(rearrangeMatrix(mx))), classes, 0),
-						filename);
-			} else {
-				Utilities
-						.writeTable(
-								SparseVector.shiftColumns(SparseVector
-										.transpose(rearrangeMatrix(mx)), 1),
-								filename);
+		if (isTransposed) {
+			try {
+				mx = SparseVector.shiftColumns(SparseVector.transpose(rearrangeMatrix(mx)));
+				if (isClasses) {
+					Utilities.writeTable(
+							Utilities.insertColumn(mx, classes, 0), filename);
+				} else {
+					Utilities.writeTable(mx, filename);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+
+		} else {
+			try {
+				if (isClasses) {
+						Utilities.writeTable(Utilities.rearrangeRows(
+							Utilities.insertColumn(mx, classes, 0),
+							getNewOrder()), filename);
+				} else {
+					Utilities.writeTable(rearrangeMatrix(mx), filename);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public void writeNewOrderWithClasses(String filename) throws IOException {
-		String type = "";
-		if (filename.contains("train")) {
-			type = "train";
-		} else if (filename.contains("test")) {
-			type = "test";
-		}
-		int position = filename.indexOf(type);
-		if (position == -1) {
-			position = filename.length() - 4;
-		}
+		int position = filename.length() - 4;
 		writeNewOrder(
 				SparseVector.transpose(SparseVector.shiftColumns(
 						SparseVector.readSparseMatrix(filename), -1)),
 				SparseVector.readClasses(filename),
-				filename.substring(0, position) + model + "_" + type + ".dat");
-
+				filename.substring(0, position) + "_" + model + ".dat");
 	}
 
 }

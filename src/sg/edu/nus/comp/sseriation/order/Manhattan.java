@@ -24,26 +24,20 @@ import sg.edu.nus.comp.sseriation.util.SparseVector;
 
 public class Manhattan extends Distributional {
 
+	private static final String MODEL_NAME="manh";
+	
 	public Manhattan(String filename) throws IOException {
-		super(filename, "manh");
+		super(filename, MODEL_NAME);
 	}
 
-	public Manhattan(String filename, boolean classes) throws IOException {
-		super(filename, "manh", true, classes);
+	public Manhattan(String filename, boolean isClasses) throws IOException {
+		super(filename, MODEL_NAME, true, isClasses);
 	}
 
-	public static void main(String[] args) throws IOException {
-		String database;
-		database = args[0];
-		String trainingFile = database + "_train.dat";
-		Distributional dor = new Manhattan(trainingFile);
-		dor.generateOrderLeftRight();
-		dor.writeOrder();
-		dor.writeNewOrderWithClasses(trainingFile);
-		String testFile = database + "_test.dat";
-		dor.writeNewOrderWithClasses(testFile);
+	public Manhattan(String filename, boolean isClasses, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, true, isClasses, isTransposed);
 	}
-
+	
 	@Override
 	protected double getDistance(int x, int y) {
 		return SparseVector.manhattan(mx[x], mx[y]);

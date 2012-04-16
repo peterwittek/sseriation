@@ -25,36 +25,34 @@ import sg.edu.nus.comp.sseriation.util.SparseVector;
 public class MutualInformation extends Distributional {
 
 	private int nBins = 100;
-
-	MutualInformation(String filename) throws IOException {
-		this(filename, true);
+	
+	private static final String MODEL_NAME="muti";
+	
+	public MutualInformation(String filename) throws IOException {
+		this(filename, true, false);
 	}
 
-	public MutualInformation(String filename, boolean reset) throws IOException {
-		this(filename, reset, true);
+	public MutualInformation(String filename, boolean isClasses) throws IOException{
+		this(filename, isClasses, false);		
 	}
-
-	MutualInformation(String filename, boolean reset, boolean classes)
+	
+	public MutualInformation(String filename, boolean isClasses, boolean isTransposed)
 			throws IOException {
-		super(filename, "muti", reset, classes);
+		super(filename, MODEL_NAME , true, isClasses, isTransposed);
 		mx = SparseVector.binify(mx, nBins);
-	}
-
-	public static void main(String[] args) throws IOException {
-		String database;
-		database = args[0];
-		String trainingFile = database + "_train.dat";
-		MutualInformation mi = new MutualInformation(trainingFile, false);
-		mi.generateOrderLeftRight();
-		mi.writeOrder();
-		mi.writeNewOrderWithClasses(trainingFile);
-		String testFile = database + "_test.dat";
-		mi.writeNewOrderWithClasses(testFile);
 	}
 
 	@Override
 	protected double getDistance(int x, int y) {
 		return SparseVector.mutualInformationMetric(mx[x], mx[y], nBins, nDimensions);
+	}
+	
+	public int getnBins() {
+		return nBins;
+	}
+
+	public void setnBins(int nBins) {
+		this.nBins = nBins;
 	}
 
 }

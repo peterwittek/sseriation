@@ -64,6 +64,30 @@ public class Utilities {
 		}
 		return result;
 	}
+	
+	/**
+	 * Rearranges rows according to a seriation
+	 * 
+	 * @param mx
+	 *            the sparse matrix to rearrange
+	 * @param newOrder
+	 *            the seriation
+	 * @return the reordered matrix
+	 */
+	public static Object[][] rearrangeRows(Object[][] mx,
+			int[] newOrder) {
+		Object[][] result = new Object[mx.length][];
+		for (int i = 0; i < result.length; i++) {
+			if (mx[newOrder[i]] != null) {
+				result[i] = new Object[mx[newOrder[i]].length];
+				for (int j = 0; j < result[i].length; j++) {
+					result[i][j] = mx[newOrder[i]][j];
+				}
+			}
+		}
+		return result;
+	}
+
 
 	public static double mean(double[] x) {
 		return sum(x) / x.length;
