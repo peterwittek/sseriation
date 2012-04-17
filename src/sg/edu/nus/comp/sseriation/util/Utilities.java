@@ -25,7 +25,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.Vector;
 
 public class Utilities {
 
@@ -75,13 +74,13 @@ public class Utilities {
 	 * @return the reordered matrix
 	 */
 	public static Object[][] rearrangeRows(Object[][] mx,
-			int[] newOrder) {
+			ArrayList<Integer> newOrder) {
 		Object[][] result = new Object[mx.length][];
 		for (int i = 0; i < result.length; i++) {
-			if (mx[newOrder[i]] != null) {
-				result[i] = new Object[mx[newOrder[i]].length];
+			if (mx[newOrder.get(i)] != null) {
+				result[i] = new Object[mx[newOrder.get(i)].length];
 				for (int j = 0; j < result[i].length; j++) {
-					result[i][j] = mx[newOrder[i]][j];
+					result[i][j] = mx[newOrder.get(i)][j];
 				}
 			}
 		}
@@ -93,16 +92,8 @@ public class Utilities {
 		return sum(x) / x.length;
 	}
 
-	private static int[] convertIntVectorToArray(Vector<Integer> v) {
-		int[] result = new int[v.size()];
-		for (int i = 0; i < result.length; i++)
-			result[i] = v.get(i);
-
-		return result;
-	}
-
 	/**
-	 * Reads an integer array
+	 * Reads an integer array list
 	 * 
 	 * @param filename
 	 *            the filename
@@ -110,9 +101,8 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-
-	public static int[] readIntArray(String filename) throws IOException {
-		Vector<Integer> tmp = new Vector<Integer>();
+	public static ArrayList<Integer> readIntArrayList(String filename) throws IOException {
+		ArrayList<Integer> tmp = new ArrayList<Integer>();
 		Scanner s = new Scanner(new BufferedReader(new FileReader(filename)))
 				.useDelimiter("[\r\n, ]");
 		;
@@ -120,7 +110,7 @@ public class Utilities {
 			tmp.add(Integer.valueOf(s.next()));
 		}
 		s.close();
-		return convertIntVectorToArray(tmp);
+		return tmp;
 	}
 
 	/**
@@ -183,15 +173,6 @@ public class Utilities {
 	}
 
 	public static void writeDoubleList(double[] objectList, String filename)
-			throws IOException {
-		FileWriter out = new FileWriter(new File(filename));
-		for (int i = 0; i < objectList.length; i++) {
-			out.write(objectList[i] + "\n");
-		}
-		out.close();
-	}
-
-	public static void writeIntList(int[] objectList, String filename)
 			throws IOException {
 		FileWriter out = new FileWriter(new File(filename));
 		for (int i = 0; i < objectList.length; i++) {

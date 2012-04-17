@@ -30,12 +30,12 @@ public class Correlation extends Distributional {
 		super(filename, MODEL_NAME);
 	}
 
-	public Correlation(String filename, boolean isClasses) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses);
+	public Correlation(String filename, boolean isClass) throws IOException {
+		super(filename, MODEL_NAME, true, isClass);
 	}
 
-	public Correlation(String filename, boolean isClasses, boolean isTransposed) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses, isTransposed);
+	public Correlation(String filename, boolean isClass, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, true, isClass, isTransposed);
 	}
 	
 	@Override

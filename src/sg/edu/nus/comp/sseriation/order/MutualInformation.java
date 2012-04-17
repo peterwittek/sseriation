@@ -32,13 +32,13 @@ public class MutualInformation extends Distributional {
 		this(filename, true, false);
 	}
 
-	public MutualInformation(String filename, boolean isClasses) throws IOException{
-		this(filename, isClasses, false);		
+	public MutualInformation(String filename, boolean isClass) throws IOException{
+		this(filename, isClass, false);		
 	}
 	
-	public MutualInformation(String filename, boolean isClasses, boolean isTransposed)
+	public MutualInformation(String filename, boolean isClass, boolean isTransposed)
 			throws IOException {
-		super(filename, MODEL_NAME , true, isClasses, isTransposed);
+		super(filename, MODEL_NAME , true, isClass, isTransposed);
 		mx = SparseVector.binify(mx, nBins);
 	}
 

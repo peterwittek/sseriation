@@ -30,12 +30,12 @@ public class Manhattan extends Distributional {
 		super(filename, MODEL_NAME);
 	}
 
-	public Manhattan(String filename, boolean isClasses) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses);
+	public Manhattan(String filename, boolean isClass) throws IOException {
+		super(filename, MODEL_NAME, true, isClass);
 	}
 
-	public Manhattan(String filename, boolean isClasses, boolean isTransposed) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses, isTransposed);
+	public Manhattan(String filename, boolean isClass, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, true, isClass, isTransposed);
 	}
 	
 	@Override

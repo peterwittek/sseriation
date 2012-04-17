@@ -30,12 +30,12 @@ public class Euclidean extends Distributional {
 		super(filename, MODEL_NAME);
 	}
 
-	public Euclidean(String filename, boolean isClasses) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses);
+	public Euclidean(String filename, boolean isClass) throws IOException {
+		super(filename, MODEL_NAME, true, isClass);
 	}
 
-	public Euclidean(String filename, boolean isClasses, boolean isTransposed) throws IOException {
-		super(filename, MODEL_NAME, true, isClasses, isTransposed);
+	public Euclidean(String filename, boolean isClass, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, true, isClass, isTransposed);
 	}
 	
 	@Override

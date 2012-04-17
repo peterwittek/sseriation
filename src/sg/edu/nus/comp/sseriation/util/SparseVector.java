@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -612,6 +614,38 @@ public class SparseVector {
 	}
 
 	/**
+	 * Rearranges a row vector according to a seriation
+	 * 
+	 * @param mx
+	 *            the sparse matrix to rearrange
+	 * @param newOrder
+	 *            the seriation
+	 * @return the reordered matrix
+	 */
+	public static VectorNode[] rearrangeRowVectorWithFeatureSeriation(
+			VectorNode[] vector, ArrayList<Integer> order) {
+		VectorNode[] result = new VectorNode[vector.length];
+		// arrayIndex keeps track of VectorNodes in the existing order.
+		int arrayIndex=0; 
+		for (int j = 0; j < vector.length; j++) {
+			for (int k = 0; k < order.size(); k++) {
+				if (vector[j].index == order.get(k)) {
+					result[arrayIndex++] = new VectorNode(k, vector[j].value);
+					break;
+				}
+			}
+		}
+		// implement Comparator to compare Strings by length
+		class IndexCompare implements Comparator<VectorNode> {
+			public int compare(VectorNode v1, VectorNode v2) {
+				return (v1.index - v2.index);
+			}
+		}
+		Arrays.sort(result, new IndexCompare());
+		return result;
+	}
+
+	/**
 	 * Rearranges row vectors according to a seriation
 	 * 
 	 * @param mx
@@ -621,14 +655,14 @@ public class SparseVector {
 	 * @return the reordered matrix
 	 */
 	public static VectorNode[][] rearrangeRowVectors(VectorNode[][] mx,
-			int[] newOrder) {
+			ArrayList<Integer> newOrder) {
 		VectorNode[][] result = new VectorNode[mx.length][];
 		for (int i = 0; i < result.length; i++) {
-			if (mx[newOrder[i]] != null) {
-				result[i] = new VectorNode[mx[newOrder[i]].length];
+			if (mx[newOrder.get(i)] != null) {
+				result[i] = new VectorNode[mx[newOrder.get(i)].length];
 				for (int j = 0; j < result[i].length; j++) {
-					result[i][j] = new VectorNode(mx[newOrder[i]][j].index,
-							mx[newOrder[i]][j].value);
+					result[i][j] = new VectorNode(mx[newOrder.get(i)][j].index,
+							mx[newOrder.get(i)][j].value);
 				}
 			}
 		}
@@ -706,7 +740,8 @@ public class SparseVector {
 	}
 
 	/**
-	 * Transposes a sparse matrix.
+	 * Transposes a sparse matrix. Note that (A')' may not be equal to A,
+	 * because null vectors are eliminated.
 	 * 
 	 * @param mx
 	 *            the sparse matrix
@@ -728,7 +763,21 @@ public class SparseVector {
 				}
 			}
 		}
-		return result;
+		int nNullVectors = 0;
+		for (int i = 0; i < result.length; i++) {
+			if (result[i] == null) {
+				nNullVectors++;
+			}
+		}
+		VectorNode[][] filteredResult = new VectorNode[result.length
+				- nNullVectors][];
+		int j = 0;
+		for (int i = 0; i < result.length; i++) {
+			if (result[i] != null) {
+				filteredResult[j++] = result[i];
+			}
+		}
+		return filteredResult;
 	}
 
 }
