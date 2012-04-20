@@ -33,11 +33,11 @@ public class JcnConservative extends LinearOrder {
 	private Jcn jcdObject;
 
 	JcnConservative(String filename) throws IOException {
-		super(filename, "jcn", true);
+		super(filename, "jcn");
 	}
 
 	public JcnConservative(String filename, boolean reset) throws IOException {
-		super(filename, "jcn", reset);
+		super(filename, "jcn");
 		System.out.println("Creating similarity object...");
 		jcdObject = new Jcn();
 		terms = Utilities.readWordList(filename);
@@ -65,6 +65,10 @@ public class JcnConservative extends LinearOrder {
 		return argmin;
 	}
 
+	protected void printInstance(int x){
+		System.out.println(terms[x]);
+	}
+	
 	@Override
 	public void writeOrder() throws IOException {
 		System.out.println("Writing order...");

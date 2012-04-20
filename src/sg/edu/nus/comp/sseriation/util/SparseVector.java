@@ -145,8 +145,8 @@ public class SparseVector {
 
 	public static VectorNode[][] binify(VectorNode[][] mx, int nBins) {
 		VectorNode[][] result = new VectorNode[mx.length][];
-		double max = max(mx);
-		double min = min(mx);
+		double max = findMax(mx);
+		double min = findMin(mx);
 
 		// Note that 0 is always the minimum for sparse vectors
 		// An adjustment avoids the problem of too wide intervals
@@ -160,6 +160,19 @@ public class SparseVector {
 				}
 			}
 		}
+		return result;
+	}
+
+	
+	public static double calculateNorm(VectorNode[] v) {
+		double result = 0;
+		if (v == null) {
+			return 0;
+		}
+		for (int i = 0; i < v.length; i++) {
+			result += v[i].value * v[i].value;
+		}
+		result = Math.sqrt(result);
 		return result;
 	}
 
@@ -200,7 +213,6 @@ public class SparseVector {
 	 *            the dimension
 	 * @return the correlation
 	 */
-
 	public static double correlation(VectorNode[] x, VectorNode[] y, int n) {
 		if (x == null || y == null) {
 			return 0;
@@ -212,6 +224,16 @@ public class SparseVector {
 						* sumSquare(y) - sumy * sumy));
 	}
 
+	public static double cosine(VectorNode[] v, VectorNode[] z) {
+		double result=dotProduct(v, z) / (calculateNorm(v) * calculateNorm(z));
+		if (result>1.0){
+			result=1.0;
+		}else if (result<-1.0){
+			result=-1.0;
+		}
+		return result;
+	}
+	
 	private static int countNonZeroEntries(VectorNode[] v) {
 		if (v == null)
 			return 0;
@@ -463,7 +485,7 @@ public class SparseVector {
 		return result;
 	}
 
-	private static double max(VectorNode[] x) {
+	private static double findMax(VectorNode[] x) {
 		double result = Double.NEGATIVE_INFINITY;
 		if (x == null) {
 			return 0;
@@ -476,10 +498,10 @@ public class SparseVector {
 		return result;
 	}
 
-	private static double max(VectorNode[][] mx) {
+	public static double findMax(VectorNode[][] mx) {
 		double result = Double.NEGATIVE_INFINITY;
 		for (int i = 0; i < mx.length; i++) {
-			double tmpMax = max(mx[i]);
+			double tmpMax = findMax(mx[i]);
 			if (tmpMax > result) {
 				result = tmpMax;
 			}
@@ -488,7 +510,7 @@ public class SparseVector {
 	}
 
 	// Finds the non-zero min of a sparse vector
-	private static double min(VectorNode[] x) {
+	private static double findMin(VectorNode[] x) {
 		double result = Double.POSITIVE_INFINITY;
 		if (x == null) {
 			return 0;
@@ -501,10 +523,10 @@ public class SparseVector {
 		return result;
 	}
 
-	private static double min(VectorNode[][] mx) {
+	private static double findMin(VectorNode[][] mx) {
 		double result = Double.POSITIVE_INFINITY;
 		for (int i = 0; i < mx.length; i++) {
-			double tmpMin = min(mx[i]);
+			double tmpMin = findMin(mx[i]);
 			if (tmpMin < result) {
 				result = tmpMin;
 			}
@@ -616,13 +638,17 @@ public class SparseVector {
 	/**
 	 * Rearranges a row vector according to a seriation
 	 * 
+	 * Obsolete, probably not needed.
+	 * 
+	 * DEBUG
+	 * 
 	 * @param mx
 	 *            the sparse matrix to rearrange
 	 * @param newOrder
 	 *            the seriation
 	 * @return the reordered matrix
 	 */
-	public static VectorNode[] rearrangeRowVectorWithFeatureSeriation(
+	private static VectorNode[] rearrangeRowVectorWithFeatureSeriation(
 			VectorNode[] vector, ArrayList<Integer> order) {
 		VectorNode[] result = new VectorNode[vector.length];
 		// arrayIndex keeps track of VectorNodes in the existing order.
@@ -762,7 +788,7 @@ public class SparseVector {
 							result[mx[i][j].index - adjust], i, mx[i][j].value);
 				}
 			}
-		}
+		}/*
 		int nNullVectors = 0;
 		for (int i = 0; i < result.length; i++) {
 			if (result[i] == null) {
@@ -776,8 +802,10 @@ public class SparseVector {
 			if (result[i] != null) {
 				filteredResult[j++] = result[i];
 			}
-		}
-		return filteredResult;
+		}*/
+		return result;
 	}
+	
+	
 
 }

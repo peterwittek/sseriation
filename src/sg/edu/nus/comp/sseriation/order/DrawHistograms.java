@@ -28,7 +28,7 @@ public class DrawHistograms {
 	public static void main(String[] args) throws IOException {
 		String database = args[0];
 		String trainingFile = database + "_train.dat";
-		LinearOrder lo = new Euclidean(trainingFile);
+		LinearOrder lo = new Euclidean(trainingFile,true);
 		lo.setOrder(original(lo.nInstances));
 		double data[][] = new double[2][];
 		data[0] = lo.calculateConsecutiveDistances();

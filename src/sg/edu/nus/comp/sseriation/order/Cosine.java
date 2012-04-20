@@ -22,17 +22,17 @@ import java.io.IOException;
 
 import sg.edu.nus.comp.sseriation.util.SparseVector;
 
-public class Correlation extends Distributional {
+public class Cosine extends Distributional {
 	
-	private static final String MODEL_NAME="corr";
+	private static final String MODEL_NAME="cos";
 	
-	public Correlation(String filename, boolean isTransposed) throws IOException {
+	public Cosine(String filename, boolean isTransposed) throws IOException {
 		super(filename, MODEL_NAME, isTransposed);
 	}
 	
 	@Override
 	protected double getDistance(int x, int y) {
-		return 1 - Math.abs(SparseVector.correlation(mx[x], mx[y], nDimensions));
+		return 1 - Math.abs(SparseVector.cosine(mx[x], mx[y]));
 	}
 
 }

@@ -3,8 +3,6 @@ package sg.edu.nus.comp.sseriation.demo;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import sg.edu.nus.comp.sseriation.order.Distributional;
-import sg.edu.nus.comp.sseriation.order.Euclidean;
 import sg.edu.nus.comp.sseriation.util.SparseVector;
 import sg.edu.nus.comp.sseriation.util.VectorNode;
 

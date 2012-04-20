@@ -19,7 +19,6 @@
 package sg.edu.nus.comp.sseriation.order;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import sg.edu.nus.comp.sseriation.util.SparseVector;
 import sg.edu.nus.comp.sseriation.util.Utilities;
@@ -29,27 +28,10 @@ public abstract class Distributional extends LinearOrder {
 
 	protected VectorNode[][] mx;
 	protected int nDimensions;
-	private boolean isClass;
 	private boolean isTransposed;
-
-	Distributional(String filename, String model) throws IOException {
-		this(filename, model, true);
-	}
-
-	Distributional(String filename, String model, boolean reset)
-			throws IOException {
-		this(filename, model, reset, true);
-	}
-
-	Distributional(String filename, String model, boolean reset,
-			boolean isClass) throws IOException {
-		this(filename, model, reset, isClass, false);
-	}
-
-	Distributional(String filename, String model, boolean reset,
-			boolean isClass, boolean isTransposed) throws IOException {
-		super(filename, model, reset);
-		this.isClass = isClass;
+	
+	Distributional(String filename, String model, boolean isTransposed) throws IOException {
+		super(filename, model);
 		this.isTransposed = isTransposed;
 		mx = SparseVector.readSparseMatrix(filename);
 		if (isTransposed) {
@@ -57,9 +39,13 @@ public abstract class Distributional extends LinearOrder {
 		}
 		nInstances = mx.length;
 		nDimensions = SparseVector.findMaxColumnIndex(mx);
-		initialize();
+		if (SparseVector.findMinColumnIndex(mx)==0){
+			nDimensions++;
+		}
+		boolean reset=true;
+		initialize(reset);
 	}
-	
+
 	@Override
 	protected int findSeed() {
 		return nInstances / 2;
@@ -76,30 +62,46 @@ public abstract class Distributional extends LinearOrder {
 		order.add(findBestSlot(nInstances-1), nInstances-1);
 	}
 	
+	public VectorNode[][] getMx() {
+		return mx;
+	}
+
+	protected void printInstance(int x){
+		for (int i=0;i<mx[x].length;i++){
+			System.out.print(mx[x][i].index+":"+mx[x][i].value+" ");
+		}
+		System.out.println();
+	}
+	
 	private VectorNode[][] rearrangeMatrix(VectorNode[][] mx) {
 		return SparseVector.rearrangeRowVectors(mx, getOrder());
 	}
+	
+	public void setMx(VectorNode[][] mx) {
+		this.mx = mx;
+		nInstances = mx.length;
+		nDimensions = SparseVector.findMaxColumnIndex(mx);
+	}
 
+	public VectorNode[][] getRearranged(){
+		return rearrangeMatrix(mx);
+	}
+	
 	public void writeNewOrder() throws IOException {
 		writeNewOrder(filename.substring(0, filename.length() - 4) + "_"
 				+ model + ".dat");
 	}
 
 	public void writeNewOrder(String filename) throws IOException {
-		if (isClass) {
-			writeNewOrder(this.mx, SparseVector.readClasses(this.filename),
-					filename);
-		} else {
-			writeNewOrder(this.mx, null, filename);
-		}
+		writeNewOrder(this.mx, null, filename);
 	}
 
-	private void writeNewOrder(VectorNode[][] mx, String[] classes,
+	public void writeNewOrder(VectorNode[][] mx, String[] classes,
 			String filename) {
 		if (isTransposed) {
 			try {
 				mx = SparseVector.transpose(rearrangeMatrix(mx));
-				if (isClass) {
+				if (classes!=null) {
 					Utilities.writeTable(
 							Utilities.insertColumn(mx, classes, 0), filename);
 				} else {
@@ -111,12 +113,13 @@ public abstract class Distributional extends LinearOrder {
 
 		} else {
 			try {
-				if (isClass) {
+				if (classes!=null) {
 						Utilities.writeTable(Utilities.rearrangeRows(
 							Utilities.insertColumn(mx, classes, 0),
 							getOrder()), filename);
 				} else {
-					Utilities.writeTable(rearrangeMatrix(mx), filename);
+					mx=rearrangeMatrix(mx);
+					Utilities.writeTable(mx, filename);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

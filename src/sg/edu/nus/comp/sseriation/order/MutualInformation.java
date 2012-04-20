@@ -28,17 +28,9 @@ public class MutualInformation extends Distributional {
 	
 	private static final String MODEL_NAME="muti";
 	
-	public MutualInformation(String filename) throws IOException {
-		this(filename, true, false);
-	}
-
-	public MutualInformation(String filename, boolean isClass) throws IOException{
-		this(filename, isClass, false);		
-	}
-	
-	public MutualInformation(String filename, boolean isClass, boolean isTransposed)
+	public MutualInformation(String filename, boolean isTransposed)
 			throws IOException {
-		super(filename, MODEL_NAME , true, isClass, isTransposed);
+		super(filename, MODEL_NAME, isTransposed);
 		mx = SparseVector.binify(mx, nBins);
 	}
 

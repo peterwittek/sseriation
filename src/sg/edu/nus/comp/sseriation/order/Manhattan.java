@@ -25,17 +25,9 @@ import sg.edu.nus.comp.sseriation.util.SparseVector;
 public class Manhattan extends Distributional {
 
 	private static final String MODEL_NAME="manh";
-	
-	public Manhattan(String filename) throws IOException {
-		super(filename, MODEL_NAME);
-	}
 
-	public Manhattan(String filename, boolean isClass) throws IOException {
-		super(filename, MODEL_NAME, true, isClass);
-	}
-
-	public Manhattan(String filename, boolean isClass, boolean isTransposed) throws IOException {
-		super(filename, MODEL_NAME, true, isClass, isTransposed);
+	public Manhattan(String filename, boolean isTransposed) throws IOException {
+		super(filename, MODEL_NAME, isTransposed);
 	}
 	
 	@Override

@@ -44,23 +44,16 @@ public abstract class LinearOrder {
 	protected String model;
 	protected String filename;
 	protected int nInstances;
-	private boolean reset;
-
+	
 	public LinearOrder(String filename, String model) {
-		this(filename, model, true);
-	}
-
-	public LinearOrder(String filename, String model, boolean reset) {
 		this.model = model;
 		this.filename = filename;
-		this.reset = reset;
 	}
 
 	public double[] calculateConsecutiveDistances() {
 		double[] result = new double[nInstances - 1];
 		for (int i = 0; i < nInstances - 1; i++) {
-			System.out.println(i);
-			result[i] = getDistance(order.get(i), order.get(i+1));
+			result[i] = getDistance(order.get(i), order.get(i + 1));
 		}
 		return result;
 	}
@@ -68,8 +61,11 @@ public abstract class LinearOrder {
 	public double calculateSumOfDistances() {
 		double result = 0;
 		for (int i = 0; i < nInstances - 1; i++) {
-			System.out.println(i);
-			result += getDistance(order.get(i), order.get(i+1));
+				if (!order.isEmpty()) {
+					result += getDistance(order.get(i), order.get(i + 1));
+				} else {
+					result += getDistance(i, i + 1);
+				}
 		}
 		return result;
 	}
@@ -90,26 +86,24 @@ public abstract class LinearOrder {
 		}
 
 		// Two separate cases have to deal with the end points
-		double d = getDistance(x, order.get(0))
-				+ getDistance(order.get(0), order.get(1));
+		double d = getDistance(x, order.get(0));
 		double min = d;
 		int argmin = -1;
-		d = getDistance(order.get(order.size() - 2),
-				order.get(order.size() - 1))
-				+ getDistance(order.get(order.get(order.size() - 1)), x);
+		d = getDistance(order.get(order.size() - 1), x);
 		if (d < min) {
 			argmin = order.size() - 1;
 			min = d;
 		}
-
 		// The main loop
 		for (int i = 0; i < order.size() - 1; i++) {
-			d = getDistance(order.get(i), x) + getDistance(x, order.get(i + 1));
+			// It is the relative increase that matters!
+			d = getDistance(order.get(i), x) + getDistance(x, order.get(i + 1))-
+					getDistance(order.get(i), order.get(i+1));
 			if (d < min) {
 				argmin = i;
 				min = d;
 			}
-		}
+		}		
 		return argmin + 1;
 	}
 
@@ -143,7 +137,7 @@ public abstract class LinearOrder {
 	/**
 	 * Generates the order by the insert heuristic
 	 */
-	public void generateOrderInsert() throws IOException {
+	public void generateOrderInsert() {
 		int progress = 0;
 		for (int i = 0; i < nInstances; i++) {
 			order.add(findBestSlot(i), i);
@@ -157,7 +151,7 @@ public abstract class LinearOrder {
 	 * Generates the order by the left-right heuristic
 	 */
 	public void generateOrderLeftRight() throws IOException {
-		if (reset) {
+		if (order.size()==0) {
 			System.out.println("Finding seed...");
 			int seed = findSeed();
 			order.add(seed);
@@ -243,7 +237,7 @@ public abstract class LinearOrder {
 		return scale;
 	}
 
-	protected void initialize() throws IOException {
+	protected void initialize(boolean reset) throws IOException {
 		remainingElements = new HashSet<Integer>();
 		for (int i = 0; i < nInstances; i++) {
 			remainingElements.add((Integer) i);
@@ -262,12 +256,14 @@ public abstract class LinearOrder {
 		}
 	}
 
+	abstract protected void printInstance(int x);
+	
 	private void printProgress(int progress) {
 		if (progress % 1000 == 0) {
 			System.out.print(progress + "..");
 		}
 	}
-
+	
 	public void setOrder(ArrayList<Integer> order) {
 		this.order = order;
 	}
@@ -286,6 +282,17 @@ public abstract class LinearOrder {
 		out.close();
 	}
 
+	/**
+	 * Updates the order with the insert heuristic
+	 */
+	public void updateOrderInsert(int i) {
+		order.add(findBestSlot(i), i);
+		for (int j=0;j<order.size();j++){
+			System.out.print(order.get(j)+" ");
+		}
+		System.out.println();
+	}
+
 	private void writeOne(String filename, int x) throws IOException {
 		FileWriter out = new FileWriter(new File(filename), true);
 		out.write(x + "\n");
@@ -293,8 +300,9 @@ public abstract class LinearOrder {
 	}
 
 	public void writeOrder() throws IOException {
-		FileWriter out = new FileWriter(new File(filename.substring(0, filename.length() - 4) + "_" + model
-				+ "_order.txt"));
+		FileWriter out = new FileWriter(new File(filename.substring(0,
+				filename.length() - 4)
+				+ "_" + model + "_order.txt"));
 		for (int i = 0; i < order.size(); i++) {
 			out.write(order.get(i) + "\n");
 		}
